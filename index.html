@@ -290,6 +290,9 @@ function applyOs() {
   } else if (/Linux/.test(navigator.platform || "") && !/Android/.test(navigator.userAgent || "")) {
     $("os").value = "linux";
   }
+  // 判定されたOSの選択肢に「（自動判定）」と表示
+  var detected = $("os").selectedOptions[0];
+  if (detected) { detected.textContent += "（自動判定）"; }
   applyOs();
   $("os").addEventListener("change", function () { applyOs(); update(); });
   $("macbrowser").addEventListener("change", update);
