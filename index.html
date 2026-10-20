@@ -109,15 +109,16 @@
   ol.howto { padding-left: 22px; margin: 8px 0; }
   ol.howto li { margin-bottom: 6px; }
   code { font-family: var(--mono); background: #eef2f7; padding: 1px 5px; border-radius: 4px; font-size: 12.5px; }
-  /* OS別表示: bodyのクラスで切り替え */
-  body.mac .os-win { display: none; }
-  body:not(.mac) .os-mac { display: none; }
+  /* OS別表示: bodyのdata-os属性で切り替え（os-unixはMac/Linux共通） */
+  body[data-os="win"] .os-mac, body[data-os="win"] .os-linux, body[data-os="win"] .os-unix { display: none; }
+  body[data-os="mac"] .os-win, body[data-os="mac"] .os-linux { display: none; }
+  body[data-os="linux"] .os-win, body[data-os="linux"] .os-mac { display: none; }
 </style>
 </head>
-<body>
+<body data-os="win">
 <div class="wrap">
   <h1>ウェブPDF保存ツール</h1>
-  <p class="lead">ウェブページを「出典URL・取得日の記録付きPDF」として保存する作業を支援する単一HTMLツールです。URLとファイル名を入力すると、日付タグ付きのファイル名と、ブラウザ（Edge／Chrome）のヘッドレス印刷によるPDF化コマンドを生成します（Windows・Mac対応）。保存先は既定でダウンロードフォルダです。保存後、PDFは各自の管理場所（共有ドライブ等）へ移動してください。</p>
+  <p class="lead">ウェブページを「出典URL・取得日の記録付きPDF」として保存する作業を支援する単一HTMLツールです。URLとファイル名を入力すると、日付タグ付きのファイル名と、ブラウザ（Edge／Chrome等）のヘッドレス印刷によるPDF化コマンドを生成します（Windows・Mac・Linux対応）。保存先は既定でダウンロードフォルダです。保存後、PDFは各自の管理場所（共有ドライブ等）へ移動してください。</p>
 
   <!-- ============ 入力 ============ -->
   <div class="card">
@@ -142,11 +143,9 @@
           <select id="os" style="flex:1;">
             <option value="win">Windows</option>
             <option value="mac">Mac</option>
+            <option value="linux">Linux</option>
           </select>
-          <select id="macbrowser" style="flex:1; display:none;">
-            <option value="chrome">Chrome</option>
-            <option value="edge">Edge</option>
-          </select>
+          <select id="macbrowser" style="flex:1; display:none;"></select>
         </div>
       </div>
       <div class="field span2">
@@ -160,7 +159,7 @@
           </select>
           <input type="text" id="savedir" placeholder="例: D:\work\pdf" style="flex:1; min-width:240px; display:none;">
         </div>
-        <p class="note">「その他」を選んだ場合: <span class="os-win">エクスプローラーで目的のフォルダを開き、アドレスバーをクリックしてパスをコピーし（Ctrl+C）、ここに貼り付けてください。</span><span class="os-mac">Finderで目的のフォルダを選び、option+command+C でパスをコピーして、ここに貼り付けてください。</span></p>
+        <p class="note">「その他」を選んだ場合: <span class="os-win">エクスプローラーで目的のフォルダを開き、アドレスバーをクリックしてパスをコピーし（Ctrl+C）、ここに貼り付けてください。</span><span class="os-mac">Finderで目的のフォルダを選び、option+command+C でパスをコピーして、ここに貼り付けてください。</span><span class="os-linux">ファイルマネージャーで目的のフォルダを開き、パス（例: /home/ユーザー名/pdf）をコピーして、ここに貼り付けてください。</span></p>
       </div>
     </div>
   </div>
@@ -193,13 +192,13 @@
         <p class="note">コマンドプロンプト（cmd）に貼り付けて実行します（<code>%USERPROFILE%</code> はcmdが自動で展開します）。ヘッドレス実行のため画面は表示されません。生成後、PDFを開いて内容を確認してください。</p>
       </details>
     </div>
-    <div class="os-mac">
+    <div class="os-unix">
       <div class="out">
         <div class="label">ターミナル用コマンド</div>
         <div class="box" id="out-cmd-mac"></div>
         <button class="copy" data-target="out-cmd-mac">コピー</button>
       </div>
-      <p class="note">「ターミナル」（Launchpad →「その他」、またはSpotlightで「ターミナル」と検索）を開き、このコマンドを貼り付けて return を押すと、保存先フォルダにPDFが作成されます。ブラウザは上の「お使いのパソコン」欄で Chrome／Edge を選べます（インストールされているものを選択）。</p>
+      <p class="note"><span class="os-mac">「ターミナル」（Launchpad →「その他」、またはSpotlightで「ターミナル」と検索）を開き、このコマンドを貼り付けて return を押すと、</span><span class="os-linux">端末（ターミナル）を開き、このコマンドを貼り付けて Enter を押すと、</span>保存先フォルダにPDFが作成されます。ブラウザは上の「お使いのパソコン」欄でインストールされているものを選んでください。<span class="os-linux">Chromiumはディストリビューションによりコマンド名が <code>chromium-browser</code> の場合があります。</span></p>
     </div>
     </div>
   </div>
@@ -209,13 +208,13 @@
     <h2>3. 使い方（作業の流れ）</h2>
     <ol class="howto">
       <li>「1. 入力」に、保存したいウェブページのURLと、付けたいファイル名を入力する（ファイル名には <code>ファイル名_YYYYMMDD.pdf</code> の形で取得日のタグが自動で付きます）。</li>
-      <li><span class="os-win">「2. 生成結果」に表示される<strong>「PDF作成バッチ（.bat）をダウンロード」</strong>を押し、ダウンロードされた .bat をダブルクリックする。</span><span class="os-mac">「2. 生成結果」に表示される<strong>ターミナル用コマンド</strong>をコピーし、「ターミナル」に貼り付けて return を押す。</span>保存先フォルダ（既定はダウンロードフォルダ）にPDFが生成される。</li>
+      <li><span class="os-win">「2. 生成結果」に表示される<strong>「PDF作成バッチ（.bat）をダウンロード」</strong>を押し、ダウンロードされた .bat をダブルクリックする。</span><span class="os-unix">「2. 生成結果」に表示される<strong>ターミナル用コマンド</strong>をコピーし、ターミナルに貼り付けて実行する。</span>保存先フォルダ（既定はダウンロードフォルダ）にPDFが生成される。</li>
       <li>生成されたPDFを開き、内容が正しく出力されているか確認する。</li>
       <li>確認したPDFを、各自の管理場所（共有ドライブの該当フォルダ等）へ移動し、必要に応じて文書台帳にURL・取得日を記録する。</li>
     </ol>
     <h3 style="font-size:14px; margin:14px 0 6px;">コマンドでうまく保存できないページ（ログインが必要・レイアウトが崩れる等）</h3>
-    <p style="margin:0 0 8px;">ヘッドレス印刷はログイン後のページを取得できず、JavaScript主体のページではレイアウトが崩れることがあります。その場合は、保存したいページをブラウザで開いて <span class="os-win"><code>Ctrl+P</code></span><span class="os-mac"><code>command+P</code></span> を押し、送信先「PDFに保存」を選んでください。詳細設定（「設定をさらに表示」）の<strong>「ヘッダーとフッター」をオン</strong>にすると余白にURLと日付が印字され、同じく出典の記録になります。ファイル名は「2. 生成結果」の日付タグ付きファイル名を付けて保存してください。</p>
-    <p class="note">※ 「コマンドが見つからない」「No such file or directory」と出る場合は、ブラウザのインストール先が標準と異なります。<span class="os-win">コマンド内のパスを <code>C:\Program Files\Microsoft\Edge\Application\msedge.exe</code> に読み替えて実行してください。</span><span class="os-mac">「お使いのパソコン」欄で Chrome／Edge を切り替えるか、コマンド内のアプリのパスを実際のインストール先に読み替えてください。</span><br>
+    <p style="margin:0 0 8px;">ヘッドレス印刷はログイン後のページを取得できず、JavaScript主体のページではレイアウトが崩れることがあります。その場合は、保存したいページをブラウザで開いて <span class="os-win"><code>Ctrl+P</code></span><span class="os-mac"><code>command+P</code></span><span class="os-linux"><code>Ctrl+P</code></span> を押し、送信先「PDFに保存」を選んでください。詳細設定（「設定をさらに表示」）の<strong>「ヘッダーとフッター」をオン</strong>にすると余白にURLと日付が印字され、同じく出典の記録になります。ファイル名は「2. 生成結果」の日付タグ付きファイル名を付けて保存してください。</p>
+    <p class="note">※ 「コマンドが見つからない」「No such file or directory」と出る場合は、ブラウザのインストール先が標準と異なります。<span class="os-win">コマンド内のパスを <code>C:\Program Files\Microsoft\Edge\Application\msedge.exe</code> に読み替えて実行してください。</span><span class="os-unix">「お使いのパソコン」欄でブラウザを切り替えるか、コマンド内のアプリのパス（コマンド名）を実際の環境に合わせて読み替えてください。</span><br>
     ※ 旧いバージョンでレイアウトが崩れる場合は <code>--headless</code> を <code>--headless=new</code> に変えて試してください。</p>
   </div>
 </div>
@@ -224,13 +223,21 @@
 "use strict";
 
 var EDGE_EXE = "C:\\Program Files (x86)\\Microsoft\\Edge\\Application\\msedge.exe";
-var MAC_APPS = {
-  chrome: "/Applications/Google Chrome.app/Contents/MacOS/Google Chrome",
-  edge: "/Applications/Microsoft Edge.app/Contents/MacOS/Microsoft Edge"
+var APPS = {
+  mac: [
+    ["chrome", "Chrome", "/Applications/Google Chrome.app/Contents/MacOS/Google Chrome"],
+    ["edge", "Edge", "/Applications/Microsoft Edge.app/Contents/MacOS/Microsoft Edge"]
+  ],
+  linux: [
+    ["chrome", "Chrome", "google-chrome"],
+    ["chromium", "Chromium", "chromium"],
+    ["edge", "Edge", "microsoft-edge"]
+  ]
 };
 var PRESETS = {
   win: { downloads: "%USERPROFILE%\\Downloads", desktop: "%USERPROFILE%\\Desktop", documents: "%USERPROFILE%\\Documents" },
-  mac: { downloads: "$HOME/Downloads", desktop: "$HOME/Desktop", documents: "$HOME/Documents" }
+  mac: { downloads: "$HOME/Downloads", desktop: "$HOME/Desktop", documents: "$HOME/Documents" },
+  linux: { downloads: "$HOME/Downloads", desktop: "$HOME/Desktop", documents: "$HOME/Documents" }
 };
 
 // ===== ユーティリティ =====
@@ -249,12 +256,28 @@ function sanitizeName(s) {
     .replace(/\s+/g, "_");
 }
 
-// OS切替の反映（表示クラス・ブラウザ選択欄・保存先の例）
+// OS切替の反映（表示切替・ブラウザ選択欄・保存先の例）
 function applyOs() {
-  var mac = $("os").value === "mac";
-  document.body.classList.toggle("mac", mac);
-  $("macbrowser").style.display = mac ? "" : "none";
-  $("savedir").placeholder = mac ? "例: /Users/共有/pdf" : "例: D:\\work\\pdf";
+  var os = $("os").value;
+  document.body.setAttribute("data-os", os);
+  var bsel = $("macbrowser");
+  if (os === "win") {
+    bsel.style.display = "none";
+  } else {
+    bsel.style.display = "";
+    var cur = bsel.value;
+    bsel.innerHTML = "";
+    APPS[os].forEach(function (a) {
+      var o = document.createElement("option");
+      o.value = a[0];
+      o.textContent = a[1];
+      bsel.appendChild(o);
+    });
+    if (APPS[os].some(function (a) { return a[0] === cur; })) { bsel.value = cur; }
+  }
+  $("savedir").placeholder =
+    os === "win" ? "例: D:\\work\\pdf" :
+    os === "mac" ? "例: /Users/共有/pdf" : "例: /home/ユーザー名/pdf";
 }
 
 // ===== 初期化 =====
@@ -264,6 +287,8 @@ function applyOs() {
   // OSの自動判定（手動で変更可）
   if (/Mac|iPhone|iPad/.test(navigator.platform || "") || /Macintosh/.test(navigator.userAgent || "")) {
     $("os").value = "mac";
+  } else if (/Linux/.test(navigator.platform || "") && !/Android/.test(navigator.userAgent || "")) {
+    $("os").value = "linux";
   }
   applyOs();
   $("os").addEventListener("change", function () { applyOs(); update(); });
@@ -320,10 +345,13 @@ function update() {
   if (!url) { return; }
 
   // --- PDF化コマンド ---
-  if (os === "mac") {
+  if (os !== "win") {
     // シェルの二重引用符内で特別な意味を持つ文字をエスケープ（$HOMEは展開させたいのでdirには適用しない）
     var esc = function (s) { return s.replace(/([\\`"$])/g, "\\$1"); };
-    var app = MAC_APPS[$("macbrowser").value];
+    var sel = $("macbrowser").value;
+    var app = "";
+    APPS[os].forEach(function (a) { if (a[0] === sel) { app = a[2]; } });
+    if (!app) { app = APPS[os][0][2]; }
     $("out-cmd-mac").textContent =
       '"' + app + '" --headless --print-to-pdf="' + dir + "/" + esc(filename) + '" "' + esc(url) + '"';
   } else {
