@@ -1,0 +1,341 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>ウェブPDF保存ツール</title>
+<style>
+  :root {
+    --bg: #f4f6f9;
+    --card: #ffffff;
+    --ink: #1f2a37;
+    --sub: #5b6b7c;
+    --line: #d8dfe8;
+    --accent: #1a5fb4;
+    --accent-soft: #e8f0fb;
+    --ok: #1a7f37;
+    --mono: Consolas, "Courier New", monospace;
+  }
+  * { box-sizing: border-box; }
+  body {
+    margin: 0;
+    background: var(--bg);
+    color: var(--ink);
+    font-family: "Yu Gothic UI", "Meiryo", "Hiragino Sans", sans-serif;
+    font-size: 14px;
+    line-height: 1.6;
+  }
+  .wrap { max-width: 900px; margin: 0 auto; padding: 24px 16px 60px; }
+  h1 { font-size: 22px; margin: 0 0 4px; }
+  .lead { color: var(--sub); margin: 0 0 20px; }
+  .card {
+    background: var(--card);
+    border: 1px solid var(--line);
+    border-radius: 10px;
+    padding: 18px 20px;
+    margin-bottom: 18px;
+  }
+  .card h2 {
+    font-size: 16px;
+    margin: 0 0 12px;
+    padding-bottom: 8px;
+    border-bottom: 2px solid var(--accent-soft);
+  }
+  .grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
+    gap: 12px 16px;
+  }
+  .field label {
+    display: block;
+    font-weight: bold;
+    font-size: 13px;
+    margin-bottom: 3px;
+  }
+  .field .hint { font-weight: normal; color: var(--sub); font-size: 12px; }
+  input[type="text"], input[type="url"], input[type="date"] {
+    width: 100%;
+    padding: 7px 9px;
+    border: 1px solid var(--line);
+    border-radius: 6px;
+    font-size: 14px;
+    font-family: inherit;
+    background: #fff;
+    color: var(--ink);
+  }
+  input:focus { outline: 2px solid var(--accent); outline-offset: -1px; }
+  .span2 { grid-column: 1 / -1; }
+  .out {
+    display: flex;
+    gap: 8px;
+    align-items: flex-start;
+    margin-bottom: 12px;
+  }
+  .out:last-child { margin-bottom: 0; }
+  .out .box {
+    flex: 1;
+    font-family: var(--mono);
+    font-size: 12.5px;
+    background: #f7f9fc;
+    border: 1px solid var(--line);
+    border-radius: 6px;
+    padding: 8px 10px;
+    white-space: pre-wrap;
+    word-break: break-all;
+    min-height: 36px;
+  }
+  .out .label {
+    width: 150px;
+    flex-shrink: 0;
+    font-weight: bold;
+    font-size: 13px;
+    padding-top: 8px;
+  }
+  button.copy {
+    flex-shrink: 0;
+    padding: 7px 14px;
+    border: 1px solid var(--accent);
+    background: var(--accent);
+    color: #fff;
+    border-radius: 6px;
+    font-size: 13px;
+    font-family: inherit;
+    cursor: pointer;
+    margin-top: 2px;
+  }
+  button.copy:hover { filter: brightness(1.1); }
+  button.copy.copied { background: var(--ok); border-color: var(--ok); }
+  .note { color: var(--sub); font-size: 12.5px; margin-top: 6px; }
+  ol.howto { padding-left: 22px; margin: 8px 0; }
+  ol.howto li { margin-bottom: 6px; }
+  code { font-family: var(--mono); background: #eef2f7; padding: 1px 5px; border-radius: 4px; font-size: 12.5px; }
+</style>
+</head>
+<body>
+<div class="wrap">
+  <h1>ウェブPDF保存ツール</h1>
+  <p class="lead">ウェブページを「出典URL・取得日の記録付きPDF」として保存する作業を支援する単一HTMLツールです。URLとファイル名を入力すると、日付タグ付きのファイル名とEdgeヘッドレスのPDF化コマンドを生成します。保存先は既定でダウンロードフォルダです。保存後、PDFは各自の管理場所（共有ドライブ等）へ移動してください。</p>
+
+  <!-- ============ 入力 ============ -->
+  <div class="card">
+    <h2>1. 入力</h2>
+    <div class="grid">
+      <div class="field span2">
+        <label>出典URL <span class="hint">（保存したいウェブページのURL）</span></label>
+        <input type="url" id="url" placeholder="https://example.org/...">
+      </div>
+      <div class="field">
+        <label>推奨ファイル名 <span class="hint">（拡張子・日付は不要）</span></label>
+        <input type="text" id="docname" placeholder="例: SP8_募集要項_2027A">
+        <p class="note">ファイル名に使えない文字（<code>\ / : * ? " &lt; &gt; |</code>）は自動で「_」に置き換わります。</p>
+      </div>
+      <div class="field">
+        <label>取得日 <span class="hint">（ファイル名の日付タグに使用）</span></label>
+        <input type="date" id="getdate">
+      </div>
+      <div class="field span2">
+        <label>保存先フォルダ</label>
+        <div style="display:flex; gap:8px; flex-wrap:wrap;">
+          <select id="savedir-preset" style="flex:0 0 auto; width:auto; padding:7px 9px; border:1px solid var(--line); border-radius:6px; font-size:14px; font-family:inherit;">
+            <option value="%USERPROFILE%\Downloads" selected>ダウンロード</option>
+            <option value="%USERPROFILE%\Desktop">デスクトップ</option>
+            <option value="%USERPROFILE%\Documents">ドキュメント</option>
+            <option value="custom">その他（パスを入力）…</option>
+          </select>
+          <input type="text" id="savedir" placeholder="例: D:\work\pdf" style="flex:1; min-width:240px; display:none;">
+        </div>
+        <p class="note">「その他」を選んだ場合は、エクスプローラーで目的のフォルダを開き、アドレスバーをクリックしてパスをコピーし（Ctrl+C）、ここに貼り付けてください。</p>
+      </div>
+    </div>
+  </div>
+
+  <!-- ============ 出力（URLを入力すると表示） ============ -->
+  <div class="card" id="result-card" style="display:none">
+    <h2>2. 生成結果</h2>
+    <div class="out">
+      <div class="label">日付タグ付きファイル名</div>
+      <div class="box" id="out-filename"></div>
+      <button class="copy" data-target="out-filename">コピー</button>
+    </div>
+    <div class="out">
+      <div class="label">ワンクリックPDF作成</div>
+      <div style="flex:1">
+        <button class="copy" id="dl-bat" style="margin:0; padding:9px 18px; font-size:14px;">⬇ PDF作成バッチ（.bat）をダウンロード</button>
+        <p class="note" style="margin-top:6px">ダウンロードした .bat ファイルを<strong>ダブルクリック</strong>すると、Edgeがバックグラウンドでページを取得し、保存先フォルダにPDFが作成されます。完了・失敗のメッセージが黒い画面に表示されます。<br>
+        ※ ブラウザやWindowsが「この種類のファイルは危険…」と警告した場合は「保存」「実行」を選んでください（このページがその場で生成したファイルで、中身は下のEdgeコマンドと同じです）。</p>
+      </div>
+    </div>
+    <details>
+      <summary>コマンドを自分で実行する場合（Edge PDF化コマンド）</summary>
+      <div class="out" style="margin-top:8px">
+        <div class="box" id="out-cmd"></div>
+        <button class="copy" data-target="out-cmd">コピー</button>
+      </div>
+      <p class="note">コマンドプロンプト（cmd）に貼り付けて実行します（<code>%USERPROFILE%</code> はcmdが自動で展開します）。ヘッドレス実行のため画面は表示されません。生成後、PDFを開いて内容を確認してください。</p>
+    </details>
+  </div>
+
+  <!-- ============ 使い方 ============ -->
+  <div class="card">
+    <h2>3. 使い方（作業の流れ）</h2>
+    <ol class="howto">
+      <li>保存したいウェブページのURLと、付けたいファイル名を「1. 入力」に入力する（ファイル名には <code>ファイル名_YYYYMMDD.pdf</code> の形で取得日のタグが自動で付きます）。</li>
+      <li><strong>PDF化（方法A・推奨）</strong>: 「PDF作成バッチ（.bat）をダウンロード」を押し、ダウンロードされた .bat をダブルクリックする。ダウンロードフォルダ（または指定したフォルダ）にPDFが生成される。コマンドに慣れている場合は、折りたたみ内のEdgeコマンドをコマンドプロンプトに貼り付けてもよい（結果は同じ）。</li>
+      <li><strong>PDF化（方法B・ログインが必要なページ等）</strong>: バッチ（Edgeヘッドレス）はログイン後のページを取得できないため、保存したいページをブラウザで開いて <code>Ctrl+P</code> を押し、送信先「PDFに保存」を選ぶ。その際「設定をさらに表示」（詳細設定）内の<strong>「ヘッダーとフッター」をオン</strong>にすると、各ページの余白にURLと日付が印字され、出典の記録になる。ファイル名は上の日付タグ付きファイル名を付けて保存する。</li>
+      <li>生成されたPDFを開き、内容が正しく出力されているか確認する（レイアウトが崩れた場合も方法Bを使用）。</li>
+      <li>確認したPDFを、各自の管理場所（共有ドライブの該当フォルダ等）へ移動し、必要に応じて文書台帳にURL・取得日を記録する。</li>
+    </ol>
+    <p class="note">※ Edgeコマンドで「コマンドが見つからない」と出る場合は、Edgeのインストール先が標準と異なります。<code>C:\Program Files\Microsoft\Edge\Application\msedge.exe</code> に読み替えてください。<br>
+    ※ 旧いEdgeでレイアウトが崩れる場合は <code>--headless</code> を <code>--headless=new</code> に変えて試してください。</p>
+  </div>
+</div>
+
+<script>
+"use strict";
+
+var EDGE_EXE = "C:\\Program Files (x86)\\Microsoft\\Edge\\Application\\msedge.exe";
+var DEFAULT_DIR = "%USERPROFILE%\\Downloads";
+
+// ===== ユーティリティ =====
+function $(id) { return document.getElementById(id); }
+
+function todayStr() {
+  var d = new Date(), p = function (n) { return (n < 10 ? "0" : "") + n; };
+  return d.getFullYear() + "-" + p(d.getMonth() + 1) + "-" + p(d.getDate());
+}
+
+// ファイル名に使えない文字を置換
+function sanitizeName(s) {
+  return (s || "").trim()
+    .replace(/[\\\/:*?"<>|]/g, "_")
+    .replace(/[\t\r\n]/g, " ")
+    .replace(/\s+/g, "_");
+}
+
+// ===== 初期化 =====
+(function init() {
+  $("getdate").value = todayStr();
+
+  ["url", "docname", "getdate", "savedir"].forEach(function (id) {
+    $(id).addEventListener("input", update);
+    $(id).addEventListener("change", update);
+  });
+
+  // ファイル名欄: 使用不可文字を入力時に自動置換
+  $("docname").addEventListener("input", function () {
+    var el = $("docname");
+    var cleaned = el.value.replace(/[\\\/:*?"<>|]/g, "_");
+    if (cleaned !== el.value) {
+      var pos = el.selectionStart;
+      el.value = cleaned;
+      el.setSelectionRange(pos, pos);
+    }
+  });
+
+  // 保存先プリセット: 「その他」選択時のみ手入力欄を表示
+  $("savedir-preset").addEventListener("change", function () {
+    var custom = $("savedir-preset").value === "custom";
+    $("savedir").style.display = custom ? "" : "none";
+    if (custom) { $("savedir").focus(); }
+    update();
+  });
+
+  update();
+})();
+
+// ===== 出力の更新 =====
+function update() {
+  var url = $("url").value.trim();
+  var name = sanitizeName($("docname").value) || "名称未設定";
+  var dateTag = ($("getdate").value || todayStr()).replace(/-/g, "");
+
+  // --- 日付タグ付きファイル名 ---
+  var filename = name + "_" + dateTag + ".pdf";
+  $("out-filename").textContent = filename;
+
+  // --- 保存先（プリセット or 手入力。末尾の \ は除去して統一）---
+  var preset = $("savedir-preset").value;
+  $("savedir").style.display = (preset === "custom") ? "" : "none";
+  var dir = (preset === "custom")
+    ? ($("savedir").value.trim().replace(/[\\\/]+$/, "") || DEFAULT_DIR)
+    : preset;
+
+  // --- 生成結果はURLが入力されたら表示 ---
+  $("result-card").style.display = url ? "" : "none";
+  if (!url) { return; }
+
+  // --- Edgeコマンド ---
+  $("out-cmd").textContent =
+    '"' + EDGE_EXE + '" --headless --print-to-pdf="' + dir + "\\" + filename + '" "' + url + '"';
+
+  // バッチ生成用に現在値を保持
+  state = { url: url, dir: dir, filename: filename };
+}
+var state = null;
+
+// ===== PDF作成バッチ(.bat)のダウンロード =====
+// cmdでは % が変数展開の記号なので、展開させたくない箇所は %% にエスケープする
+// （保存先の %USERPROFILE% はあえて展開させるのでエスケープしない）
+function escBat(s) { return s.replace(/%/g, "%%"); }
+
+$("dl-bat").addEventListener("click", function () {
+  if (!state || !state.url) { return; }
+  var lines = [
+    "@echo off",
+    "chcp 65001 >nul",
+    'set "OUT=' + state.dir + "\\" + escBat(state.filename) + '"',
+    "echo PDFを作成しています...",
+    '"' + EDGE_EXE + '" --headless --print-to-pdf="%OUT%" "' + escBat(state.url) + '"',
+    'if exist "%OUT%" (',
+    "  echo 完了: %OUT%",
+    ") else (",
+    "  echo 失敗しました。URL と Edge のインストール先を確認してください。",
+    ")",
+    "pause",
+    ""
+  ];
+  var blob = new Blob([lines.join("\r\n")], { type: "application/octet-stream" });
+  var a = document.createElement("a");
+  a.href = URL.createObjectURL(blob);
+  a.download = "PDF作成_" + state.filename.replace(/\.pdf$/, "") + ".bat";
+  document.body.appendChild(a);
+  a.click();
+  document.body.removeChild(a);
+  setTimeout(function () { URL.revokeObjectURL(a.href); }, 5000);
+});
+
+// ===== コピー =====
+document.querySelectorAll("button.copy").forEach(function (btn) {
+  btn.addEventListener("click", function () {
+    var text = $(btn.getAttribute("data-target")).textContent;
+    function done(ok) {
+      btn.textContent = ok ? "コピー済✓" : "失敗";
+      btn.classList.add("copied");
+      setTimeout(function () {
+        btn.textContent = "コピー";
+        btn.classList.remove("copied");
+      }, 1500);
+    }
+    if (navigator.clipboard && navigator.clipboard.writeText) {
+      navigator.clipboard.writeText(text).then(function () { done(true); },
+        function () { done(fallbackCopy(text)); });
+    } else {
+      done(fallbackCopy(text));
+    }
+  });
+});
+function fallbackCopy(text) {
+  var ta = document.createElement("textarea");
+  ta.value = text;
+  ta.style.position = "fixed";
+  ta.style.opacity = "0";
+  document.body.appendChild(ta);
+  ta.select();
+  var ok = false;
+  try { ok = document.execCommand("copy"); } catch (e) {}
+  document.body.removeChild(ta);
+  return ok;
+}
+</script>
+</body>
+</html>
