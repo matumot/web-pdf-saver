@@ -5,7 +5,9 @@
 
 ウェブ上の公開情報（規定・募集要項・技術資料など）を「いつ・どこから取得したか」を記録しながらPDFで収集・保管する用途を想定しています。
 
-**▶ すぐ使う: https://matumot.github.io/web-pdf-saver/**
+**▶ すぐ使う（インストール不要）: https://matumot.github.io/web-pdf-saver/**
+
+リポジトリ: https://github.com/matumot/web-pdf-saver
 
 ## 機能
 
