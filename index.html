@@ -149,9 +149,11 @@
     </div>
   </div>
 
-  <!-- ============ 出力（URLを入力すると表示） ============ -->
-  <div class="card" id="result-card" style="display:none">
+  <!-- ============ 出力 ============ -->
+  <div class="card">
     <h2>2. 生成結果</h2>
+    <p class="note" id="result-empty" style="margin:0">出典URLとファイル名を入力すると、ここに生成結果が表示されます。</p>
+    <div id="result-body" style="display:none">
     <div class="out">
       <div class="label">日付タグ付きファイル名</div>
       <div class="box" id="out-filename"></div>
@@ -173,19 +175,21 @@
       </div>
       <p class="note">コマンドプロンプト（cmd）に貼り付けて実行します（<code>%USERPROFILE%</code> はcmdが自動で展開します）。ヘッドレス実行のため画面は表示されません。生成後、PDFを開いて内容を確認してください。</p>
     </details>
+    </div>
   </div>
 
   <!-- ============ 使い方 ============ -->
   <div class="card">
     <h2>3. 使い方（作業の流れ）</h2>
     <ol class="howto">
-      <li>保存したいウェブページのURLと、付けたいファイル名を「1. 入力」に入力する（ファイル名には <code>ファイル名_YYYYMMDD.pdf</code> の形で取得日のタグが自動で付きます）。</li>
-      <li><strong>PDF化（方法A・推奨）</strong>: 「PDF作成バッチ（.bat）をダウンロード」を押し、ダウンロードされた .bat をダブルクリックする。ダウンロードフォルダ（または指定したフォルダ）にPDFが生成される。コマンドに慣れている場合は、折りたたみ内のEdgeコマンドをコマンドプロンプトに貼り付けてもよい（結果は同じ）。</li>
-      <li><strong>PDF化（方法B・ログインが必要なページ等）</strong>: バッチ（Edgeヘッドレス）はログイン後のページを取得できないため、保存したいページをブラウザで開いて <code>Ctrl+P</code> を押し、送信先「PDFに保存」を選ぶ。その際「設定をさらに表示」（詳細設定）内の<strong>「ヘッダーとフッター」をオン</strong>にすると、各ページの余白にURLと日付が印字され、出典の記録になる。ファイル名は上の日付タグ付きファイル名を付けて保存する。</li>
-      <li>生成されたPDFを開き、内容が正しく出力されているか確認する（レイアウトが崩れた場合も方法Bを使用）。</li>
+      <li>「1. 入力」に、保存したいウェブページのURLと、付けたいファイル名を入力する（ファイル名には <code>ファイル名_YYYYMMDD.pdf</code> の形で取得日のタグが自動で付きます）。</li>
+      <li>「2. 生成結果」に表示される<strong>「PDF作成バッチ（.bat）をダウンロード」</strong>を押し、ダウンロードされた .bat をダブルクリックする。保存先フォルダ（既定はダウンロードフォルダ）にPDFが生成される。</li>
+      <li>生成されたPDFを開き、内容が正しく出力されているか確認する。</li>
       <li>確認したPDFを、各自の管理場所（共有ドライブの該当フォルダ等）へ移動し、必要に応じて文書台帳にURL・取得日を記録する。</li>
     </ol>
-    <p class="note">※ Edgeコマンドで「コマンドが見つからない」と出る場合は、Edgeのインストール先が標準と異なります。<code>C:\Program Files\Microsoft\Edge\Application\msedge.exe</code> に読み替えてください。<br>
+    <h3 style="font-size:14px; margin:14px 0 6px;">バッチでうまく保存できないページ（ログインが必要・レイアウトが崩れる等）</h3>
+    <p style="margin:0 0 8px;">バッチはログイン後のページを取得できず、JavaScript主体のページではレイアウトが崩れることがあります。その場合は、保存したいページをブラウザで開いて <code>Ctrl+P</code> を押し、送信先「PDFに保存」を選んでください。詳細設定（「設定をさらに表示」）の<strong>「ヘッダーとフッター」をオン</strong>にすると余白にURLと日付が印字され、同じく出典の記録になります。ファイル名は「2. 生成結果」の日付タグ付きファイル名を付けて保存してください。</p>
+    <p class="note">※ バッチ実行時に「コマンドが見つからない」と出る場合は、Edgeのインストール先が標準と異なります。折りたたみ内のEdgeコマンドのパスを <code>C:\Program Files\Microsoft\Edge\Application\msedge.exe</code> に読み替えて実行してください。<br>
     ※ 旧いEdgeでレイアウトが崩れる場合は <code>--headless</code> を <code>--headless=new</code> に変えて試してください。</p>
   </div>
 </div>
@@ -260,8 +264,9 @@ function update() {
     ? ($("savedir").value.trim().replace(/[\\\/]+$/, "") || DEFAULT_DIR)
     : preset;
 
-  // --- 生成結果はURLが入力されたら表示 ---
-  $("result-card").style.display = url ? "" : "none";
+  // --- 生成結果の中身はURLが入力されたら表示（未入力時は案内文のみ）---
+  $("result-empty").style.display = url ? "none" : "";
+  $("result-body").style.display = url ? "" : "none";
   if (!url) { return; }
 
   // --- Edgeコマンド ---
