@@ -109,6 +109,18 @@
   ol.howto { padding-left: 22px; margin: 8px 0; }
   ol.howto li { margin-bottom: 6px; }
   code { font-family: var(--mono); background: #eef2f7; padding: 1px 5px; border-radius: 4px; font-size: 12.5px; }
+  .warn {
+    background: #fff6e0;
+    border: 1px solid #e8c46a;
+    border-radius: 8px;
+    padding: 10px 14px;
+    margin: 0 0 12px;
+    font-size: 13px;
+  }
+  .warn strong { color: #8a5a00; }
+  table.pp { border-collapse: collapse; width: 100%; margin: 6px 0 8px; font-size: 13px; }
+  table.pp th, table.pp td { border: 1px solid var(--line); padding: 6px 8px; text-align: left; vertical-align: top; }
+  table.pp th { background: #f7f9fc; white-space: nowrap; }
   /* OS別表示: bodyのdata-os属性で切り替え（os-unixはMac/Linux共通） */
   body[data-os="win"] .os-mac, body[data-os="win"] .os-linux, body[data-os="win"] .os-unix { display: none; }
   body[data-os="mac"] .os-win, body[data-os="mac"] .os-linux { display: none; }
@@ -193,12 +205,17 @@
       </details>
     </div>
     <div class="os-unix">
+      <div class="warn">
+        <strong>⚠ このコマンドを使うには Google Chrome または Microsoft Edge がインストールされている必要があります。</strong><br>
+        Safari・Firefox にはこの仕組み（ヘッドレス印刷）がないため、<span class="os-mac">Safari／Firefox だけの Mac では</span><span class="os-linux">Firefox だけの環境では</span>コマンドではPDF化できません。その場合は下の「3. 使い方」にある<strong>印刷メニューからのPDF保存</strong>（<span class="os-mac">command+P</span><span class="os-linux">Ctrl+P</span>）をご利用ください。
+        <span id="browser-hint" style="display:none"><br>（今お使いのブラウザは <strong id="browser-name"></strong> です。Chrome／Edge が入っていなければ、印刷メニューからの保存が確実です。）</span>
+      </div>
       <div class="out">
         <div class="label">ターミナル用コマンド</div>
         <div class="box" id="out-cmd-mac"></div>
         <button class="copy" data-target="out-cmd-mac">コピー</button>
       </div>
-      <p class="note"><span class="os-mac">「ターミナル」（Launchpad →「その他」、またはSpotlightで「ターミナル」と検索）を開き、このコマンドを貼り付けて return を押すと、</span><span class="os-linux">端末（ターミナル）を開き、このコマンドを貼り付けて Enter を押すと、</span>保存先フォルダにPDFが作成されます。ブラウザは上の「お使いのパソコン」欄でインストールされているものを選んでください。<span class="os-linux">Chromiumはディストリビューションによりコマンド名が <code>chromium-browser</code> の場合があります。</span></p>
+      <p class="note"><span class="os-mac">「ターミナル」（Launchpad →「その他」、またはSpotlightで「ターミナル」と検索）を開き、このコマンドを貼り付けて return を押すと、</span><span class="os-linux">端末（ターミナル）を開き、このコマンドを貼り付けて Enter を押すと、</span>保存先フォルダにPDFが作成され「完了」と表示されます。ブラウザは上の「お使いのパソコン」欄でインストールされているものを選んでください（見つからない場合はその旨が表示されます）。<span class="os-linux">Chromiumはディストリビューションによりコマンド名が <code>chromium-browser</code> の場合があります。</span></p>
     </div>
     </div>
   </div>
@@ -213,7 +230,12 @@
       <li>確認したPDFを、各自の管理場所（共有ドライブの該当フォルダ等）へ移動し、必要に応じて文書台帳にURL・取得日を記録する。</li>
     </ol>
     <h3 style="font-size:14px; margin:14px 0 6px;">コマンドでうまく保存できないページ（ログインが必要・レイアウトが崩れる等）</h3>
-    <p style="margin:0 0 8px;">ヘッドレス印刷はログイン後のページを取得できず、JavaScript主体のページではレイアウトが崩れることがあります。その場合は、保存したいページをブラウザで開いて <span class="os-win"><code>Ctrl+P</code></span><span class="os-mac"><code>command+P</code></span><span class="os-linux"><code>Ctrl+P</code></span> を押し、送信先「PDFに保存」を選んでください。詳細設定（「設定をさらに表示」）の<strong>「ヘッダーとフッター」をオン</strong>にすると余白にURLと日付が印字され、同じく出典の記録になります。ファイル名は「2. 生成結果」の日付タグ付きファイル名を付けて保存してください。</p>
+    <p style="margin:0 0 8px;">ヘッドレス印刷はログイン後のページを取得できず、JavaScript主体のページではレイアウトが崩れることがあります。その場合<span class="os-unix">（またはChrome／Edgeが入っていない場合）</span>は、保存したいページをブラウザで開いて <span class="os-win"><code>Ctrl+P</code></span><span class="os-mac"><code>command+P</code></span><span class="os-linux"><code>Ctrl+P</code></span> を押し、PDFとして保存してください。<strong>ヘッダーとフッターの印刷をオン</strong>にすると余白にURLと日付が印字され、同じく出典の記録になります。ファイル名は「2. 生成結果」の日付タグ付きファイル名を付けて保存してください。</p>
+    <table class="pp">
+      <tr><th>Chrome／Edge</th><td>送信先（プリンター）で「PDFに保存」を選択 →「詳細設定」（「設定をさらに表示」）の「ヘッダーとフッター」をオン →「保存」</td></tr>
+      <tr class="os-mac"><th>Safari</th><td>印刷画面で「詳細を表示」を押す →「ヘッダとフッタをプリント」にチェック → 左下の「PDF」メニュー →「PDFとして保存」<br><span class="note">※「ファイル」→「PDFとして書き出す」ではURL・日付が印字されないので、印刷メニューから保存してください。</span></td></tr>
+      <tr><th>Firefox</th><td>送信先で「PDFに保存」を選択（Macでは「PDFとして保存」の場合あり）→「詳細設定」の「ヘッダーとフッターを印刷」にチェック →「保存」</td></tr>
+    </table>
     <p class="note">※ 「コマンドが見つからない」「No such file or directory」と出る場合は、ブラウザのインストール先が標準と異なります。<span class="os-win">コマンド内のパスを <code>C:\Program Files\Microsoft\Edge\Application\msedge.exe</code> に読み替えて実行してください。</span><span class="os-unix">「お使いのパソコン」欄でブラウザを切り替えるか、コマンド内のアプリのパス（コマンド名）を実際の環境に合わせて読み替えてください。</span><br>
     ※ 旧いバージョンでレイアウトが崩れる場合は <code>--headless</code> を <code>--headless=new</code> に変えて試してください。</p>
   </div>
@@ -294,6 +316,15 @@ function applyOs() {
   var detected = $("os").selectedOptions[0];
   if (detected) { detected.textContent += "（自動判定）"; }
   applyOs();
+
+  // 閲覧中のブラウザが Safari／Firefox なら注意書きに表示
+  var ua = navigator.userAgent || "";
+  var bn = /Firefox\//.test(ua) ? "Firefox" :
+    (/Safari\//.test(ua) && !/Chrome|Chromium|CriOS|Edg/.test(ua)) ? "Safari" : "";
+  if (bn) {
+    $("browser-name").textContent = bn;
+    $("browser-hint").style.display = "";
+  }
   $("os").addEventListener("change", function () { applyOs(); update(); });
   $("macbrowser").addEventListener("change", update);
 
@@ -355,8 +386,16 @@ function update() {
     var app = "";
     APPS[os].forEach(function (a) { if (a[0] === sel) { app = a[2]; } });
     if (!app) { app = APPS[os][0][2]; }
+    var bname = "";
+    APPS[os].forEach(function (a) { if (a[2] === app) { bname = a[1]; } });
+    // 1行で貼り付けられる形: ブラウザの有無を確認し、完了/失敗を表示する
     $("out-cmd-mac").textContent =
-      '"' + app + '" --headless --print-to-pdf="' + dir + "/" + esc(filename) + '" "' + esc(url) + '"';
+      'APP="' + app + '"; OUT="' + dir + "/" + esc(filename) + '"; ' +
+      'if command -v "$APP" >/dev/null 2>&1; then ' +
+      '"$APP" --headless --print-to-pdf="$OUT" "' + esc(url) + '" 2>/dev/null; ' +
+      'if [ -f "$OUT" ]; then echo "完了: $OUT"; else echo "失敗しました。URLを確認してください。"; fi; ' +
+      'else echo "' + bname + 'が見つかりません。インストールされていない場合は、ブラウザの印刷メニュー（' +
+      (os === "mac" ? "command+P" : "Ctrl+P") + '）からPDFとして保存してください。"; fi';
   } else {
     $("out-cmd").textContent =
       '"' + EDGE_EXE + '" --headless --print-to-pdf="' + dir + "\\" + filename + '" "' + url + '"';

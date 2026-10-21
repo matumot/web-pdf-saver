@@ -24,6 +24,7 @@
 - Windows 10 / 11 ＋ Microsoft Edge（標準のインストール先 `C:\Program Files (x86)\Microsoft\Edge\Application\msedge.exe` を想定。異なる場合は生成されたコマンド内のパスを読み替えてください）
 - または macOS ＋ Google Chrome もしくは Microsoft Edge（`/Applications` 配下の標準インストールを想定）
 - または Linux ＋ Google Chrome／Chromium／Microsoft Edge（`google-chrome`・`chromium`・`microsoft-edge` がPATHにある前提。Chromiumはディストリビューションにより `chromium-browser` の場合あり）
+- **Safari・Firefox だけの環境ではコマンド方式は使えません**（ヘッドレス印刷機能がないため）。Chrome／Edge をインストールするか、後述の印刷メニュー（`command+P` / `Ctrl+P`）からの保存を使ってください
 - ツール自体の表示には Edge / Chrome / Safari 等のモダンブラウザが使えます（OSは自動判定・手動切替可）
 
 ## 使い方
@@ -39,6 +40,8 @@
 ヘッドレス印刷はログイン後のページを取得できません。その場合は、対象ページをブラウザで開いて `Ctrl+P` →
 送信先「PDFに保存」を選び、詳細設定の **「ヘッダーとフッター」をオン** にして保存してください。
 余白にURLと日付が印字され、同様に出典の記録になります。
+Mac の Safari では `command+P` →「詳細を表示」→「ヘッダとフッタをプリント」にチェック → 左下「PDF」→「PDFとして保存」、
+Firefox では印刷画面の「詳細設定」→「ヘッダーとフッターを印刷」にチェックして PDF に保存します。
 
 ## .bat ダウンロード時の警告について
 
