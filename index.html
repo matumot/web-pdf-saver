@@ -333,10 +333,10 @@ function applyOs() {
     $(id).addEventListener("change", update);
   });
 
-  // ファイル名欄: 使用不可文字を入力時に自動置換
+  // ファイル名欄: 使用不可文字と空白（半角・全角）を入力時に自動置換
   $("docname").addEventListener("input", function () {
     var el = $("docname");
-    var cleaned = el.value.replace(/[\\\/:*?"<>|]/g, "_");
+    var cleaned = el.value.replace(/[\\\/:*?"<>|\s]/g, "_");
     if (cleaned !== el.value) {
       var pos = el.selectionStart;
       el.value = cleaned;
